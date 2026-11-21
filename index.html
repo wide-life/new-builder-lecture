@@ -318,6 +318,26 @@
     </form>
   </section>
 
+  <section class="card" id="comments">
+    <div class="result-header">
+      <h2>댓글</h2>
+    </div>
+    <div id="disqus_thread"></div>
+    <script>
+      var disqus_config = function () {
+        this.page.url = "https://new-builder-lecture.pages.dev/";
+        this.page.identifier = "lotto-645-home";
+      };
+      (function () {
+        var d = document, s = d.createElement("script");
+        s.src = "https://wide-life.disqus.com/embed.js";
+        s.setAttribute("data-timestamp", +new Date());
+        (d.head || d.body).appendChild(s);
+      })();
+    </script>
+    <noscript>댓글을 보려면 JavaScript를 켜주세요. <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </section>
+
   <footer>
     번호는 브라우저의 암호학적 난수(crypto.getRandomValues)로 생성됩니다.<br />
     모든 번호 조합의 당첨 확률은 동일합니다(1등 1/8,145,060). 재미로만 이용하세요.
