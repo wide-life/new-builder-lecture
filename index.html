@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>로또 6/45 번 추천기</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #f59e0b;
+    --accent-hover: #d97706;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    background: radial-gradient(circle at top, #1e3a5f 0%, var(--bg) 60%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+  }
+  .container { width: 100%; max-width: 640px; }
+  header { text-align: center; margin-bottom: 28px; }
+  header h1 { font-size: 2rem; letter-spacing: -0.5px; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--muted); margin-top: 8px; font-size: 0.95rem; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls label { color: var(--muted); font-size: 0.9rem; }
+  select {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.95rem;
+  }
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 14px;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .options input[type="text"] {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    width: 170px;
+    font-size: 0.88rem;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-sub {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .btn-sub:hover { color: var(--text); border-color: var(--muted); }
+
+  .main-action { text-align: center; margin-top: 20px; }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .result-header h2 { font-size: 1.1rem; }
+
+  .game {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .game:last-child { border-bottom: none; }
+  .game-label {
+    width: 28px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .balls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ball {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    box-shadow: inset -4px -4px 8px rgba(0,0,0,0.25), inset 3px 3px 6px rgba(255,255,255,0.35);
+    animation: pop 0.35s ease-out both;
+  }
+  .plus { color: var(--muted); font-weight: 700; align-self: center; }
+  /* 동행복권 공 색상 구간 */
+  .c1 { background: #fbc400; }   /* 1~10 */
+  .c2 { background: #69c8f2; }   /* 11~20 */
+  .c3 { background: #ff7272; }   /* 21~30 */
+  .c4 { background: #aaaaaa; }   /* 31~40 */
+  .c5 { background: #b0d840; }   /* 41~45 */
+
+  @keyframes pop {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    80% { transform: scale(1.1) rotate(10deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); }
+  }
+
+  .stats {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: auto;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .empty { text-align: center; color: var(--muted); padding: 20px 0; }
+
+  .history-item {
+    font-size: 0.85rem;
+    color: var(--muted);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: ui-monospace, Consolas, monospace;
+  }
+  .history-item:last-child { border-bottom: none; }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #10b981;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: transform 0.3s;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: 10px; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    .ball { width: 36px; height: 36px; font-size: 0.9rem; }
+    .stats { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🍀 로또 <span>6/45</span> 번호 추천기</h1>
+    <p>버튼을 누르면 1~45 중 중복 없는 6개 번호를 추천해 드립니다</p>
+  </header>
+
+  <section class="card">
+    <div class="controls">
+      <label for="count">게임 수</label>
+      <select id="count">
+        <option value="1">1게임</option>
+        <option value="3">3게임</option>
+        <option value="5" selected>5게임</option>
+        <option value="10">10게임</option>
+      </select>
+      <label><input type="checkbox" id="bonus" /> 보너스 번호 표시</label>
+    </div>
+    <div class="options">
+      <span>포함할 번호 <input type="text" id="include" placeholder="예: 7, 23" /></span>
+      <span>제외할 번호 <input type="text" id="exclude" placeholder="예: 1, 45" /></span>
+    </div>
+    <div class="main-action">
+      <button class="btn" id="generate">번호 추천받기</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="result-header">
+      <h2>추천 번호</h2>
+      <button class="btn-sub" id="copy">📋 복사</button>
+    </div>
+    <div id="result"><div class="empty">아직 추천된 번호가 없습니다</div></div>
+  </section>
+
+  <section class="card">
+    <div class="result-header">
+      <h2>최근 추천 기록</h2>
+      <button class="btn-sub" id="clear">기록 지우기</button>
+    </div>
+    <div id="history"><div class="empty">기록이 없습니다</div></div>
+  </section>
+
+  <footer>
+    번호는 브라우저의 암호학적 난수(crypto.getRandomValues)로 생성됩니다.<br />
+    모든 번호 조합의 당첨 확률은 동일합니다(1등 1/8,145,060). 재미로만 이용하세요.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const MAX = 45, PICK = 6;
+  const $ = (id) => document.getElementById(id);
+  let currentGames = [];
+  let history = [];
+
+  // 0 ~ max-1 범위의 편향 없는 정수 난수
+  function randInt(max) {
+    const arr = new Uint32Array(1);
+    const limit = Math.floor(0xFFFFFFFF / max) * max;
+    let x;
+    do { crypto.getRandomValues(arr); x = arr[0]; } while (x >= limit);
+    return x % max;
+  }
+
+  function parseNums(text) {
+    return [...new Set(
+      text.split(/[\s,]+/).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= MAX)
+    )];
+  }
+
+  function colorClass(n) {
+    if (n <= 10) return "c1";
+    if (n <= 20) return "c2";
+    if (n <= 30) return "c3";
+    if (n <= 40) return "c4";
+    return "c5";
+  }
+
+  function pickGame(include, exclude, withBonus) {
+    const picked = new Set(include);
+    const pool = [];
+    for (let i = 1; i <= MAX; i++) {
+      if (!picked.has(i) && !exclude.includes(i)) pool.push(i);
+    }
+    // Fisher-Yates 셔플
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = randInt(i + 1);
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    const need = PICK - picked.size;
+    const main = [...picked, ...pool.slice(0, need)].sort((a, b) => a - b);
+    const bonus = withBonus ? pool[need] : null;
+    return { main, bonus };
+  }
+
+  function validate(include, exclude) {
+    if (include.length > PICK) return "포함할 번호는 최대 6개까지 가능합니다.";
+    if (include.some(n => exclude.includes(n))) return "포함·제외 번호가 겹칩니다.";
+    if (MAX - exclude.length < PICK + 1) return "제외 번호가 너무 많습니다.";
+    return null;
+  }
+
+  function ballHTML(n, delay) {
+    return `<div class="ball ${colorClass(n)}" style="animation-delay:${delay}ms">${n}</div>`;
+  }
+
+  function render(games) {
+    $("result").innerHTML = games.map((g, idx) => {
+      const sum = g.main.reduce((a, b) => a + b, 0);
+      const odd = g.main.filter(n => n % 2).length;
+      let balls = g.main.map((n, i) => ballHTML(n, idx * 120 + i * 70)).join("");
+      if (g.bonus) balls += `<span class="plus">+</span>` + ballHTML(g.bonus, idx * 120 + 6 * 70);
+      return `
+        <div class="game">
+          <div class="game-label">${String.fromCharCode(65 + idx)}</div>
+          <div class="balls">${balls}</div>
+          <div class="stats">합계 ${sum}<br />홀${odd} : 짝${PICK - odd}</div>
+        </div>`;
+    }).join("");
+  }
+
+  function renderHistory() {
+    if (!history.length) {
+      $("history").innerHTML = `<div class="empty">기록이 없습니다</div>`;
+      return;
+    }
+    $("history").innerHTML = history.slice(0, 20).map(h =>
+      `<div class="history-item">[${h.time}] ${h.nums.map(n => String(n).padStart(2, "0")).join(" ")}</div>`
+    ).join("");
+  }
+
+  function showToast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 1800);
+  }
+
+  $("generate").addEventListener("click", () => {
+    const include = parseNums($("include").value);
+    const exclude = parseNums($("exclude").value);
+    const err = validate(include, exclude);
+    if (err) { showToast("⚠️ " + err); return; }
+
+    const count = Number($("count").value);
+    const withBonus = $("bonus").checked;
+    currentGames = Array.from({ length: count }, () => pickGame(include, exclude, withBonus));
+    render(currentGames);
+
+    const time = new Date().toLocaleTimeString("ko-KR", { hour12: false });
+    currentGames.slice().reverse().forEach(g => history.unshift({ time, nums: g.main }));
+    renderHistory();
+  });
+
+  $("copy").addEventListener("click", async () => {
+    if (!currentGames.length) { showToast("복사할 번호가 없습니다"); return; }
+    const text = currentGames.map((g, i) =>
+      `${String.fromCharCode(65 + i)}: ${g.main.join(", ")}${g.bonus ? " + " + g.bonus : ""}`
+    ).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("✅ 클립보드에 복사했습니다");
+    } catch {
+      showToast("복사에 실패했습니다");
+    }
+  });
+
+  $("clear").addEventListener("click", () => {
+    history = [];
+    renderHistory();
+  });
+</script>
+</body>
+</html>
