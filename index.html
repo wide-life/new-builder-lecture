@@ -185,11 +185,45 @@
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
+  /* 제휴 문의 폼 */
+  .contact-desc { color: var(--muted); font-size: 0.88rem; margin-bottom: 18px; }
+  .form-row { display: flex; gap: 12px; }
+  .form-row > div { flex: 1; min-width: 0; }
+  .contact label.f { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+  .contact .req { color: #f87171; }
+  .contact input[type="text"], .contact input[type="email"], .contact input[type="tel"],
+  .contact select, .contact textarea {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 16px;
+    font-family: inherit;
+    margin-bottom: 14px;
+  }
+  .contact select { padding: 10px 12px; }
+  .contact textarea { min-height: 120px; resize: vertical; }
+  .contact input:focus, .contact select:focus, .contact textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+  }
+  .agree { display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; }
+  .agree input { margin-top: 3px; }
+  .contact .btn { width: 100%; font-size: 1rem; padding: 13px; }
+  .form-status { margin-top: 12px; font-size: 0.88rem; text-align: center; }
+  .form-status.ok { color: #34d399; }
+  .form-status.err { color: #f87171; }
+  .hp { display: none; }
+
   footer { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: 10px; line-height: 1.6; }
 
   @media (max-width: 480px) {
     .ball { width: 36px; height: 36px; font-size: 0.9rem; }
     .stats { display: none; }
+    .form-row { flex-direction: column; gap: 0; }
   }
 </style>
 </head>
@@ -227,6 +261,61 @@
       <button class="btn-sub" id="clear">기록 지우기</button>
     </div>
     <div id="history"><div class="empty">기록이 없습니다</div></div>
+  </section>
+
+  <section class="card contact" id="contact">
+    <div class="result-header">
+      <h2>제휴 문의</h2>
+    </div>
+    <p class="contact-desc">제휴 제안을 남겨주시면 검토 후 기재하신 이메일로 회신드리겠습니다.</p>
+
+    <form id="contact-form" action="https://formspree.io/f/xwlonbed" method="POST">
+      <input type="hidden" name="_subject" value="[제휴문의] 새 문의가 접수되었습니다" />
+      <input type="text" name="_gotcha" class="hp" tabindex="-1" autocomplete="off" />
+
+      <div class="form-row">
+        <div>
+          <label class="f" for="cf-company">회사명 <span class="req">*</span></label>
+          <input id="cf-company" name="company" type="text" required />
+        </div>
+        <div>
+          <label class="f" for="cf-name">담당자명 <span class="req">*</span></label>
+          <input id="cf-name" name="name" type="text" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label class="f" for="cf-email">이메일 <span class="req">*</span></label>
+          <input id="cf-email" name="email" type="email" required />
+        </div>
+        <div>
+          <label class="f" for="cf-phone">연락처</label>
+          <input id="cf-phone" name="phone" type="tel" placeholder="010-0000-0000" />
+        </div>
+      </div>
+
+      <label class="f" for="cf-type">제휴 유형 <span class="req">*</span></label>
+      <select id="cf-type" name="partnership_type" required>
+        <option value="">선택해주세요</option>
+        <option>사업 제휴</option>
+        <option>마케팅·광고 제휴</option>
+        <option>콘텐츠 협업</option>
+        <option>투자 문의</option>
+        <option>기타</option>
+      </select>
+
+      <label class="f" for="cf-message">문의 내용 <span class="req">*</span></label>
+      <textarea id="cf-message" name="message" required placeholder="제휴 목적, 제안 내용 등을 자유롭게 적어주세요."></textarea>
+
+      <label class="agree">
+        <input type="checkbox" name="privacy_consent" value="동의" required />
+        문의 회신을 위한 개인정보(이름, 이메일, 연락처) 수집·이용에 동의합니다.
+      </label>
+
+      <button type="submit" class="btn" id="cf-submit">문의 보내기</button>
+      <div class="form-status" id="cf-status" role="status"></div>
+    </form>
   </section>
 
   <footer>
@@ -358,6 +447,36 @@
   $("clear").addEventListener("click", () => {
     history = [];
     renderHistory();
+  });
+
+  // 제휴 문의 폼 (Formspree)
+  $("contact-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget, btn = $("cf-submit"), status = $("cf-status");
+    btn.disabled = true;
+    btn.textContent = "전송 중...";
+    status.className = "form-status";
+    status.textContent = "";
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.errors ? data.errors.map(x => x.message).join(", ") : "전송 실패");
+      }
+      form.reset();
+      status.className = "form-status ok";
+      status.textContent = "문의가 정상적으로 접수되었습니다. 감사합니다!";
+    } catch (err) {
+      status.className = "form-status err";
+      status.textContent = "전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (" + err.message + ")";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "문의 보내기";
+    }
   });
 </script>
 </body>
